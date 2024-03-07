@@ -7,7 +7,9 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Warden;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
@@ -40,5 +42,14 @@ public class MiningGameCommand implements CommandExecutor, Listener {
 
     }
     return false;
+  }
+
+  @EventHandler
+  public void onBlockBreak(BlockBreakEvent e) {
+    Player player = e.getPlayer();
+    World world = e.getBlock().getWorld();
+    Material material = e.getBlock().getType();
+
+    player.sendMessage("ブロックを破壊しました。Material:" + material);
   }
 }
