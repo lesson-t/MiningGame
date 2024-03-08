@@ -1,5 +1,6 @@
 package plugin.mininggame;
 
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.command.Command;
@@ -17,6 +18,8 @@ import org.bukkit.potion.PotionEffect;
 public class MiningGameCommand implements CommandExecutor, Listener {
 
   private Main main;
+
+  int score;
 
   @Override
   public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -50,6 +53,16 @@ public class MiningGameCommand implements CommandExecutor, Listener {
     World world = e.getBlock().getWorld();
     Material material = e.getBlock().getType();
 
-    player.sendMessage("ブロックを破壊しました。Material:" + material);
+    switch(material) {
+      case COAL_ORE -> score +=10;
+      case COPPER_ORE -> score +=10;
+      case IRON_ORE -> score +=10;
+      case GOLD_ORE -> score +=30;
+      case REDSTONE_ORE -> score +=30;
+      case DIAMOND_ORE -> score +=50;
+      case NETHER_QUARTZ_ORE -> score +=100;
+    }
+
+    player.sendMessage("ブロックを破壊しました。Material:" + material + "合計点数：" + score);
   }
 }

@@ -4,3 +4,4 @@ main: plugin.mininggame.Main
 api-version: '1.19'
 commands:
   mininggame:
+  materialspawn:
