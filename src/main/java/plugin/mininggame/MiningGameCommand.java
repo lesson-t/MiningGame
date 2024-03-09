@@ -22,13 +22,19 @@ public class MiningGameCommand implements CommandExecutor, Listener {
 
   private int score = 0;
   
-  private int gameTime = 30;
+  private int gameTime;
+
+  public MiningGameCommand(Main main) {
+    this.main = main;
+  }
 
   @Override
   public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
     if(sender instanceof Player player) {
       World world = player.getWorld();
+      gameTime = 30;
+
       player.setLevel(30);
       player.setHealth(20);
       player.setFoodLevel(20);
@@ -56,6 +62,8 @@ public class MiningGameCommand implements CommandExecutor, Listener {
 
           return;
         }
+        player.sendMessage("残り" + gameTime + "s");
+        gameTime -=5;
       }, 0, 5 * 20);
 
     }
