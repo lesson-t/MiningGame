@@ -1,5 +1,6 @@
 package plugin.mininggame;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -19,7 +20,9 @@ public class MiningGameCommand implements CommandExecutor, Listener {
 
   private Main main;
 
-  int score;
+  private int score = 0;
+  
+  private int gameTime = 30;
 
   @Override
   public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -37,11 +40,23 @@ public class MiningGameCommand implements CommandExecutor, Listener {
       inventory.setBoots(new ItemStack(Material.NETHERITE_BOOTS));
       inventory.setItemInMainHand(new ItemStack(Material.NETHERITE_PICKAXE));
 
-      player.getActivePotionEffects().stream()
-          .map(PotionEffect::getType)
-          .forEach(player::removePotionEffect);
+      removePotionEffect(player);
 
       player.sendTitle("ゲームスタート！","", 0,40, 0);
+
+      Bukkit.getScheduler().runTaskTimer(main, Runnable -> {
+        if(gameTime <= 0) {
+          Runnable.cancel();
+
+          player.sendTitle("ゲームが終了しました。",
+              player.getName() + "合計 " + score + "点！",
+              0, 60, 0);
+
+          removePotionEffect(player);
+
+          return;
+        }
+      }, 0, 5 * 20);
 
     }
     return false;
@@ -64,5 +79,13 @@ public class MiningGameCommand implements CommandExecutor, Listener {
     }
 
     player.sendMessage("ブロックを破壊しました。Material:" + material + "合計点数：" + score);
+    
   }
+
+  private static void removePotionEffect(Player player) {
+    player.getActivePotionEffects().stream()
+        .map(PotionEffect::getType)
+        .forEach(player::removePotionEffect);
+  }
+
 }
