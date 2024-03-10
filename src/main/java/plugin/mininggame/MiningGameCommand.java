@@ -1,5 +1,6 @@
 package plugin.mininggame;
 
+import java.util.Objects;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -20,7 +21,9 @@ public class MiningGameCommand implements CommandExecutor, Listener {
 
   private Main main;
 
-  private int score = 0;
+  private Player player;
+
+  private int score;
   
   private int gameTime;
 
@@ -32,6 +35,7 @@ public class MiningGameCommand implements CommandExecutor, Listener {
   public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
     if(sender instanceof Player player) {
+      this.player = player;
       World world = player.getWorld();
       gameTime = 30;
 
@@ -73,20 +77,27 @@ public class MiningGameCommand implements CommandExecutor, Listener {
   @EventHandler
   public void onBlockBreak(BlockBreakEvent e) {
     Player player = e.getPlayer();
-    World world = e.getBlock().getWorld();
     Material material = e.getBlock().getType();
 
-    switch(material) {
-      case COAL_ORE -> score +=10;
-      case COPPER_ORE -> score +=10;
-      case IRON_ORE -> score +=10;
-      case GOLD_ORE -> score +=30;
-      case REDSTONE_ORE -> score +=30;
-      case DIAMOND_ORE -> score +=50;
-      case NETHER_QUARTZ_ORE -> score +=100;
-    }
+    if(Objects.isNull(player))
+      return;
+    if(Objects.isNull(this.player))
+      return;
 
-    player.sendMessage("ブロックを破壊しました。Material:" + material + "合計点数：" + score);
+    if(this.player.getName().equals(player.getName())) {
+
+      switch(material) {
+        case COAL_ORE -> score +=10;
+        case COPPER_ORE -> score +=10;
+        case IRON_ORE -> score +=10;
+        case GOLD_ORE -> score +=30;
+        case REDSTONE_ORE -> score +=30;
+        case DIAMOND_ORE -> score +=50;
+        case NETHER_QUARTZ_ORE -> score +=100;
+      }
+
+      player.sendMessage("ブロックを破壊しました。Material:" + material + "合計点数：" + score);
+    }
     
   }
 

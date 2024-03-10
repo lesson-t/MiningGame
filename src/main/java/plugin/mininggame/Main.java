@@ -13,7 +13,7 @@ public final class Main extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(miningGameCommand, this);
         Bukkit.getPluginManager().registerEvents(materialSpawnCommand, this);
         getCommand("mininggame").setExecutor(miningGameCommand);
-        getCommand("materialSpawn").setExecutor(new MaterialSpawnCommand());
+        getCommand("materialSpawn").setExecutor(materialSpawnCommand);
 
     }
 
