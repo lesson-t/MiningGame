@@ -1,30 +1,30 @@
-package plugin.mininggame;
+package plugin.mininggame.command;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Warden;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
+import plugin.mininggame.Main;
+import plugin.mininggame.data.PlayerScore;
 
 public class MiningGameCommand implements CommandExecutor, Listener {
 
   private Main main;
 
-  private Player player;
+  private List<PlayerScore> playerScoreList = new ArrayList<>();
 
-  private int score;
-  
   private int gameTime;
 
   public MiningGameCommand(Main main) {
@@ -35,7 +35,17 @@ public class MiningGameCommand implements CommandExecutor, Listener {
   public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
     if(sender instanceof Player player) {
-      this.player = player;
+      if(playerScoreList.isEmpty()) {
+        addNewPlayer(player);
+      } else {
+        for(PlayerScore playerScore: playerScoreList) {
+          if(!playerScore.getPlayerName().equals(player.getName())) {
+            addNewPlayer(player);
+          }
+        }
+      }
+
+
       World world = player.getWorld();
       gameTime = 30;
 
@@ -59,8 +69,9 @@ public class MiningGameCommand implements CommandExecutor, Listener {
           Runnable.cancel();
 
           player.sendTitle("ゲームが終了しました。",
-              player.getName() + "合計 " + score + "点！",
+              player.getName() + "合計 " + "playerscore.getScore() 点！",
               0, 60, 0);
+          //playerscore.getScore()の表示未実装
 
           removePotionEffect(player);
 
@@ -79,28 +90,40 @@ public class MiningGameCommand implements CommandExecutor, Listener {
     Player player = e.getPlayer();
     Material material = e.getBlock().getType();
 
-    if(Objects.isNull(player))
+    if(Objects.isNull(player) || playerScoreList.isEmpty()) {
       return;
-    if(Objects.isNull(this.player))
-      return;
-
-    if(this.player.getName().equals(player.getName())) {
-
-      switch(material) {
-        case COAL_ORE -> score +=10;
-        case COPPER_ORE -> score +=10;
-        case IRON_ORE -> score +=10;
-        case GOLD_ORE -> score +=30;
-        case REDSTONE_ORE -> score +=30;
-        case DIAMOND_ORE -> score +=50;
-        case NETHER_QUARTZ_ORE -> score +=100;
-      }
-
-      player.sendMessage("ブロックを破壊しました。Material:" + material + "合計点数：" + score);
     }
-    
+
+    for(PlayerScore playerScore : playerScoreList) {
+      if(playerScore.getPlayerName().equals(player.getName())) {
+        switch(material) {
+          case COAL_ORE -> playerScore.setScore(playerScore.getScore() + 10);
+          case COPPER_ORE -> playerScore.setScore(playerScore.getScore() + 10);
+          case IRON_ORE -> playerScore.setScore(playerScore.getScore() + 10);
+          case GOLD_ORE -> playerScore.setScore(playerScore.getScore() + 30);
+          case REDSTONE_ORE -> playerScore.setScore(playerScore.getScore() + 30);
+          case DIAMOND_ORE -> playerScore.setScore(playerScore.getScore() + 50);
+          case NETHER_QUARTZ_ORE -> playerScore.setScore(playerScore.getScore() + 50);
+        }
+        player.sendMessage("ブロックを破壊しました。Material:" + material + "合計点数：" + playerScore.getScore());
+      }
+    }
   }
 
+  /**
+   * 新規のプレイヤー情報をリストに追加します。
+   * @param player　コマンドを実行したプレイヤー
+   */
+  private void addNewPlayer(Player player) {
+    PlayerScore newPlayer = new PlayerScore();
+    newPlayer.setPlayerName(player.getName());
+    playerScoreList.add(newPlayer);
+  }
+
+  /**
+   * プレイヤーのポーション効果を除去します。
+   * @param player　コマンドを実行したプイレヤー
+   */
   private static void removePotionEffect(Player player) {
     player.getActivePotionEffects().stream()
         .map(PotionEffect::getType)

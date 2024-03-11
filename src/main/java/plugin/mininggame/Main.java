@@ -2,7 +2,8 @@ package plugin.mininggame;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.util.io.BukkitObjectInputStream;
+import plugin.mininggame.command.MaterialSpawnCommand;
+import plugin.mininggame.command.MiningGameCommand;
 
 public final class Main extends JavaPlugin {
 

@@ -1,4 +1,4 @@
-package plugin.mininggame;
+package plugin.mininggame.command;
 
 import java.net.http.WebSocket;
 import java.net.http.WebSocket.Listener;
