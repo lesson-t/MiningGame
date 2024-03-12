@@ -76,17 +76,20 @@ public class MiningGameCommand implements CommandExecutor, Listener {
     Player player = e.getPlayer();
     Material material = e.getBlock().getType();
 
-    if(Objects.isNull(player) || playerScoreList.isEmpty()) {
+    if(playerScoreList.isEmpty()) {
       return;
     }
 
     for(PlayerScore playerScore : playerScoreList) {
       if(playerScore.getPlayerName().equals(player.getName())) {
-        switch(material) {
-          case COAL_ORE, COPPER_ORE, IRON_ORE -> playerScore.setScore(playerScore.getScore() + 10);
-          case GOLD_ORE, REDSTONE_ORE -> playerScore.setScore(playerScore.getScore() + 30);
-          case DIAMOND_ORE, NETHER_QUARTZ_ORE -> playerScore.setScore(playerScore.getScore() + 50);
-        }
+        int point = switch(material) {
+          case COAL_ORE, COPPER_ORE, IRON_ORE -> 10;
+          case GOLD_ORE, REDSTONE_ORE -> 30;
+          case DIAMOND_ORE, NETHER_QUARTZ_ORE -> 50;
+          default -> 0;
+        };
+
+        playerScore.setScore(playerScore.getScore() + point);
         player.sendMessage("ブロックを破壊しました。Material:" + material + "合計点数：" + playerScore.getScore());
       }
     }
