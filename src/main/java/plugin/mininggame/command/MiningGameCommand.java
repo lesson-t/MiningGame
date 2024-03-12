@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Objects;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -22,10 +21,8 @@ import plugin.mininggame.data.PlayerScore;
 public class MiningGameCommand implements CommandExecutor, Listener {
 
   private Main main;
-
   private List<PlayerScore> playerScoreList = new ArrayList<>();
 
-  private int gameTime;
 
   public MiningGameCommand(Main main) {
     this.main = main;
@@ -35,19 +32,8 @@ public class MiningGameCommand implements CommandExecutor, Listener {
   public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
     if(sender instanceof Player player) {
-      if(playerScoreList.isEmpty()) {
-        addNewPlayer(player);
-      } else {
-        for(PlayerScore playerScore: playerScoreList) {
-          if(!playerScore.getPlayerName().equals(player.getName())) {
-            addNewPlayer(player);
-          }
-        }
-      }
-
-
-      World world = player.getWorld();
-      gameTime = 30;
+      PlayerScore nowPlayer = getPlayerScore(player);
+      nowPlayer.setGameTime(30);
 
       player.setLevel(30);
       player.setHealth(20);
@@ -65,20 +51,20 @@ public class MiningGameCommand implements CommandExecutor, Listener {
       player.sendTitle("ゲームスタート！","", 0,40, 0);
 
       Bukkit.getScheduler().runTaskTimer(main, Runnable -> {
-        if(gameTime <= 0) {
+        if(nowPlayer.getGameTime() <= 0) {
           Runnable.cancel();
 
           player.sendTitle("ゲームが終了しました。",
-              player.getName() + "合計 " + "playerscore.getScore() 点！",
+              nowPlayer.getPlayerName() + " 合計" + nowPlayer.getScore() + "点！",
               0, 60, 0);
-          //playerscore.getScore()の表示未実装
+          nowPlayer.setScore(0);
 
           removePotionEffect(player);
 
           return;
         }
-        player.sendMessage("残り" + gameTime + "s");
-        gameTime -=5;
+        player.sendMessage("残り" + nowPlayer.getGameTime() + "s");
+        nowPlayer.setGameTime(nowPlayer.getGameTime() - 5);
       }, 0, 5 * 20);
 
     }
@@ -97,13 +83,9 @@ public class MiningGameCommand implements CommandExecutor, Listener {
     for(PlayerScore playerScore : playerScoreList) {
       if(playerScore.getPlayerName().equals(player.getName())) {
         switch(material) {
-          case COAL_ORE -> playerScore.setScore(playerScore.getScore() + 10);
-          case COPPER_ORE -> playerScore.setScore(playerScore.getScore() + 10);
-          case IRON_ORE -> playerScore.setScore(playerScore.getScore() + 10);
-          case GOLD_ORE -> playerScore.setScore(playerScore.getScore() + 30);
-          case REDSTONE_ORE -> playerScore.setScore(playerScore.getScore() + 30);
-          case DIAMOND_ORE -> playerScore.setScore(playerScore.getScore() + 50);
-          case NETHER_QUARTZ_ORE -> playerScore.setScore(playerScore.getScore() + 50);
+          case COAL_ORE, COPPER_ORE, IRON_ORE -> playerScore.setScore(playerScore.getScore() + 10);
+          case GOLD_ORE, REDSTONE_ORE -> playerScore.setScore(playerScore.getScore() + 30);
+          case DIAMOND_ORE, NETHER_QUARTZ_ORE -> playerScore.setScore(playerScore.getScore() + 50);
         }
         player.sendMessage("ブロックを破壊しました。Material:" + material + "合計点数：" + playerScore.getScore());
       }
@@ -111,13 +93,35 @@ public class MiningGameCommand implements CommandExecutor, Listener {
   }
 
   /**
+   * 現在実行しているプレイヤーのスコア情報を取得する。
+   * @param player　コマンドを実行したプイレヤー
+   * @return　現在実行しているプレイヤーのスコア情報
+   */
+  private PlayerScore getPlayerScore(Player player) {
+    if(playerScoreList.isEmpty()) {
+      return addNewPlayer(player);
+    } else {
+      for(PlayerScore playerScore: playerScoreList) {
+        if(!playerScore.getPlayerName().equals(player.getName())) {
+          return addNewPlayer(player);
+        } else {
+          return playerScore;
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
    * 新規のプレイヤー情報をリストに追加します。
    * @param player　コマンドを実行したプレイヤー
+   * @return 新規プレイヤー
    */
-  private void addNewPlayer(Player player) {
+  private PlayerScore addNewPlayer(Player player) {
     PlayerScore newPlayer = new PlayerScore();
     newPlayer.setPlayerName(player.getName());
     playerScoreList.add(newPlayer);
+    return newPlayer;
   }
 
   /**
