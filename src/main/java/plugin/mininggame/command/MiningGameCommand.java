@@ -5,9 +5,12 @@ import java.util.List;
 import java.util.Objects;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -33,6 +36,7 @@ public class MiningGameCommand implements CommandExecutor, Listener {
 
     if(sender instanceof Player player) {
       PlayerScore nowPlayer = getPlayerScore(player);
+      World world = player.getWorld();
       nowPlayer.setGameTime(30);
 
       player.setLevel(30);
@@ -48,7 +52,16 @@ public class MiningGameCommand implements CommandExecutor, Listener {
 
       removePotionEffect(player);
 
+      
+
       player.sendTitle("ゲームスタート！","", 0,40, 0);
+
+      List<Entity> nearbyEnemies = player.getNearbyEntities(100, 100, 100);
+      for(Entity enemy : nearbyEnemies) {
+        switch (enemy.getType()) {
+          case SPIDER, ZOMBIE, SKELETON, WITCH, ENDERMAN, CREEPER, PHANTOM -> enemy.remove();
+        }
+      }
 
       Bukkit.getScheduler().runTaskTimer(main, Runnable -> {
         if(nowPlayer.getGameTime() <= 0) {
