@@ -21,11 +21,16 @@ import org.bukkit.potion.PotionEffect;
 import plugin.mininggame.Main;
 import plugin.mininggame.data.PlayerScore;
 
+/**
+ * 制限時間内に特定の鉱石ブロックを破壊して、スコアを獲得するゲームを起動するコマンドです。
+ * スコアは破壊した鉱石ブロックによって変わり、破壊した合計によりスコアが変動します。
+ * 結果はプイレヤー名、点数、日時などで保存されます。
+ */
 public class MiningGameCommand extends BaseCommand implements Listener {
 
+  public static final int GAME_TIME = 20;
   private Main main;
   private List<PlayerScore> playerScoreList = new ArrayList<>();
-
 
   public MiningGameCommand(Main main) {
     this.main = main;
@@ -34,23 +39,9 @@ public class MiningGameCommand extends BaseCommand implements Listener {
   @Override
   public boolean onExecutePlayerCommand(Player player) {
     PlayerScore nowPlayer = getPlayerScore(player);
-    World world = player.getWorld();
-    nowPlayer.setGameTime(20);
 
-    player.setLevel(30);
-    player.setHealth(20);
-    player.setFoodLevel(20);
-
-    PlayerInventory inventory = player.getInventory();
-    inventory.setHelmet(new ItemStack(Material.NETHERITE_HELMET));
-    inventory.setChestplate(new ItemStack(Material.NETHERITE_CHESTPLATE));
-    inventory.setLeggings(new ItemStack(Material.NETHERITE_LEGGINGS));
-    inventory.setBoots(new ItemStack(Material.NETHERITE_BOOTS));
-    inventory.setItemInMainHand(new ItemStack(Material.NETHERITE_PICKAXE));
-
+    initPlayerStatus(player);
     removePotionEffect(player);
-
-
 
     player.sendTitle("ゲームスタート！","", 0,40, 0);
 
@@ -61,22 +52,10 @@ public class MiningGameCommand extends BaseCommand implements Listener {
       }
     }
 
-    Bukkit.getScheduler().runTaskTimer(main, Runnable -> {
-      if(nowPlayer.getGameTime() <= 0) {
-        Runnable.cancel();
+    gamePlay(player, nowPlayer);
 
-        player.sendTitle("ゲームが終了しました。",
-            nowPlayer.getPlayerName() + " 合計" + nowPlayer.getScore() + "点！",
-            0, 60, 0);
-        nowPlayer.setScore(0);
+    removePotionEffect(player);
 
-        removePotionEffect(player);
-
-        return;
-      }
-      player.sendMessage("残り" + nowPlayer.getGameTime() + "s");
-      nowPlayer.setGameTime(nowPlayer.getGameTime() - 5);
-    }, 0, 5 * 20);
     return true;
   }
 
@@ -85,6 +64,11 @@ public class MiningGameCommand extends BaseCommand implements Listener {
     return false;
   }
 
+  /**
+   * プイレヤーが破壊したブロックのマテリアルタイプを判定して、特定の鉱石ブロックの場合に点数を加算します。
+   *
+   * @param e　プレイヤーが破壊したブロックのイベント
+   */
   @EventHandler
   public void onBlockBreak(BlockBreakEvent e) {
     Player player = e.getPlayer();
@@ -111,41 +95,85 @@ public class MiningGameCommand extends BaseCommand implements Listener {
 
   /**
    * 現在実行しているプレイヤーのスコア情報を取得する。
+   *
    * @param player　コマンドを実行したプイレヤー
    * @return　現在実行しているプレイヤーのスコア情報
    */
   private PlayerScore getPlayerScore(Player player) {
+    PlayerScore playerScore = new PlayerScore(player.getName());
+
     if(playerScoreList.isEmpty()) {
-      return addNewPlayer(player);
+      playerScore = addNewPlayer(player);
     } else {
-      for(PlayerScore playerScore: playerScoreList) {
-        if(!playerScore.getPlayerName().equals(player.getName())) {
-          return addNewPlayer(player);
-        } else {
-          return playerScore;
-        }
-      }
+      playerScore = playerScoreList.stream()
+          .findFirst()
+          .map(ps -> ps.getPlayerName().equals(player.getName())
+              ? ps
+              : addNewPlayer(player)).orElse(playerScore);
     }
-    return null;
+    playerScore.setGameTime(GAME_TIME);
+    return playerScore;
   }
 
   /**
    * 新規のプレイヤー情報をリストに追加します。
+   *
    * @param player　コマンドを実行したプレイヤー
    * @return 新規プレイヤー
    */
   private PlayerScore addNewPlayer(Player player) {
-    PlayerScore newPlayer = new PlayerScore();
-    newPlayer.setPlayerName(player.getName());
+    PlayerScore newPlayer = new PlayerScore(player.getName());
     playerScoreList.add(newPlayer);
     return newPlayer;
   }
 
   /**
+   * プレイヤーの初期状態を設定する。
+   *
+   * @param player　コマンドを実行したプレイヤー
+   */
+  private void initPlayerStatus(Player player) {
+    player.setLevel(30);
+    player.setHealth(20);
+    player.setFoodLevel(20);
+
+    PlayerInventory inventory = player.getInventory();
+    inventory.setHelmet(new ItemStack(Material.NETHERITE_HELMET));
+    inventory.setChestplate(new ItemStack(Material.NETHERITE_CHESTPLATE));
+    inventory.setLeggings(new ItemStack(Material.NETHERITE_LEGGINGS));
+    inventory.setBoots(new ItemStack(Material.NETHERITE_BOOTS));
+    inventory.setItemInMainHand(new ItemStack(Material.NETHERITE_PICKAXE));
+  }
+
+  /**
+   * ゲームを実行します。規定の時間内に特定の鉱石ブロックを壊すとスコアが加算されます。合計スコアが時間の経過後に表示します。
+   *
+   * @param player　コマンドを実行したプレイヤー
+   * @param nowPlayer　プレイヤースコア情報
+   */
+  private void gamePlay(Player player, PlayerScore nowPlayer) {
+    Bukkit.getScheduler().runTaskTimer(main, Runnable -> {
+      if(nowPlayer.getGameTime() <= 0) {
+        Runnable.cancel();
+
+        player.sendTitle("ゲームが終了しました。",
+            nowPlayer.getPlayerName() + " 合計" + nowPlayer.getScore() + "点！",
+            0, 60, 0);
+        nowPlayer.setScore(0);
+
+        return;
+      }
+      player.sendMessage("残り" + nowPlayer.getGameTime() + "s");
+      nowPlayer.setGameTime(nowPlayer.getGameTime() - 5);
+    }, 0, 5 * 20);
+  }
+
+  /**
    * プレイヤーのポーション効果を除去します。
+   *
    * @param player　コマンドを実行したプイレヤー
    */
-  private static void removePotionEffect(Player player) {
+  private void removePotionEffect(Player player) {
     player.getActivePotionEffects().stream()
         .map(PotionEffect::getType)
         .forEach(player::removePotionEffect);
