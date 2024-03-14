@@ -21,7 +21,7 @@ import org.bukkit.potion.PotionEffect;
 import plugin.mininggame.Main;
 import plugin.mininggame.data.PlayerScore;
 
-public class MiningGameCommand implements CommandExecutor, Listener {
+public class MiningGameCommand extends BaseCommand implements Listener {
 
   private Main main;
   private List<PlayerScore> playerScoreList = new ArrayList<>();
@@ -32,55 +32,56 @@ public class MiningGameCommand implements CommandExecutor, Listener {
   }
 
   @Override
-  public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+  public boolean onExecutePlayerCommand(Player player) {
+    PlayerScore nowPlayer = getPlayerScore(player);
+    World world = player.getWorld();
+    nowPlayer.setGameTime(20);
 
-    if(sender instanceof Player player) {
-      PlayerScore nowPlayer = getPlayerScore(player);
-      World world = player.getWorld();
-      nowPlayer.setGameTime(30);
+    player.setLevel(30);
+    player.setHealth(20);
+    player.setFoodLevel(20);
 
-      player.setLevel(30);
-      player.setHealth(20);
-      player.setFoodLevel(20);
+    PlayerInventory inventory = player.getInventory();
+    inventory.setHelmet(new ItemStack(Material.NETHERITE_HELMET));
+    inventory.setChestplate(new ItemStack(Material.NETHERITE_CHESTPLATE));
+    inventory.setLeggings(new ItemStack(Material.NETHERITE_LEGGINGS));
+    inventory.setBoots(new ItemStack(Material.NETHERITE_BOOTS));
+    inventory.setItemInMainHand(new ItemStack(Material.NETHERITE_PICKAXE));
 
-      PlayerInventory inventory = player.getInventory();
-      inventory.setHelmet(new ItemStack(Material.NETHERITE_HELMET));
-      inventory.setChestplate(new ItemStack(Material.NETHERITE_CHESTPLATE));
-      inventory.setLeggings(new ItemStack(Material.NETHERITE_LEGGINGS));
-      inventory.setBoots(new ItemStack(Material.NETHERITE_BOOTS));
-      inventory.setItemInMainHand(new ItemStack(Material.NETHERITE_PICKAXE));
+    removePotionEffect(player);
 
-      removePotionEffect(player);
 
-      
 
-      player.sendTitle("ゲームスタート！","", 0,40, 0);
+    player.sendTitle("ゲームスタート！","", 0,40, 0);
 
-      List<Entity> nearbyEnemies = player.getNearbyEntities(100, 100, 100);
-      for(Entity enemy : nearbyEnemies) {
-        switch (enemy.getType()) {
-          case SPIDER, ZOMBIE, SKELETON, WITCH, ENDERMAN, CREEPER, PHANTOM -> enemy.remove();
-        }
+    List<Entity> nearbyEnemies = player.getNearbyEntities(100, 100, 100);
+    for(Entity enemy : nearbyEnemies) {
+      switch (enemy.getType()) {
+        case SPIDER, ZOMBIE, SKELETON, WITCH, ENDERMAN, CREEPER, PHANTOM -> enemy.remove();
       }
-
-      Bukkit.getScheduler().runTaskTimer(main, Runnable -> {
-        if(nowPlayer.getGameTime() <= 0) {
-          Runnable.cancel();
-
-          player.sendTitle("ゲームが終了しました。",
-              nowPlayer.getPlayerName() + " 合計" + nowPlayer.getScore() + "点！",
-              0, 60, 0);
-          nowPlayer.setScore(0);
-
-          removePotionEffect(player);
-
-          return;
-        }
-        player.sendMessage("残り" + nowPlayer.getGameTime() + "s");
-        nowPlayer.setGameTime(nowPlayer.getGameTime() - 5);
-      }, 0, 5 * 20);
-
     }
+
+    Bukkit.getScheduler().runTaskTimer(main, Runnable -> {
+      if(nowPlayer.getGameTime() <= 0) {
+        Runnable.cancel();
+
+        player.sendTitle("ゲームが終了しました。",
+            nowPlayer.getPlayerName() + " 合計" + nowPlayer.getScore() + "点！",
+            0, 60, 0);
+        nowPlayer.setScore(0);
+
+        removePotionEffect(player);
+
+        return;
+      }
+      player.sendMessage("残り" + nowPlayer.getGameTime() + "s");
+      nowPlayer.setGameTime(nowPlayer.getGameTime() - 5);
+    }, 0, 5 * 20);
+    return true;
+  }
+
+  @Override
+  public boolean onExecuteNPCCommand(CommandSender sender) {
     return false;
   }
 

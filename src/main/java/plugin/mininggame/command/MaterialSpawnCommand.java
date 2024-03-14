@@ -10,28 +10,29 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class MaterialSpawnCommand implements CommandExecutor, Listener, org.bukkit.event.Listener {
-
+public class MaterialSpawnCommand extends BaseCommand implements Listener, org.bukkit.event.Listener {
 
   @Override
-  public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+  public boolean onExecutePlayerCommand(Player player) {
+    World world = player.getWorld();
+    Location playerLocation = player.getLocation();
+    double x = playerLocation.getX();
+    double y = playerLocation.getY();
+    double z = playerLocation.getZ() +3;
 
-    if(sender instanceof Player player) {
-      World world = player.getWorld();
-      Location playerLocation = player.getLocation();
-      double x = playerLocation.getX();
-      double y = playerLocation.getY();
-      double z = playerLocation.getZ() +3;
+    world.getBlockAt(new Location(world, x-3, y, z)).setType(Material.COAL_ORE);
+    world.getBlockAt(new Location(world, x-2, y, z)).setType(Material.COPPER_ORE);
+    world.getBlockAt(new Location(world, x-1, y, z)).setType(Material.IRON_ORE);
+    world.getBlockAt(new Location(world,    x,   y, z)).setType(Material.GOLD_ORE);
+    world.getBlockAt(new Location(world, x+1, y, z)).setType(Material.REDSTONE_ORE);
+    world.getBlockAt(new Location(world, x+2, y, z)).setType(Material.DIAMOND_ORE);
+    world.getBlockAt(new Location(world, x+3, y, z)).setType(Material.NETHER_QUARTZ_ORE);
 
-      world.getBlockAt(new Location(world, x-3, y, z+3)).setType(Material.COAL_ORE);
-      world.getBlockAt(new Location(world, x-2, y, z+3)).setType(Material.COPPER_ORE);
-      world.getBlockAt(new Location(world, x-1, y, z+3)).setType(Material.IRON_ORE);
-      world.getBlockAt(new Location(world, x, y, z+3)).setType(Material.GOLD_ORE);
-      world.getBlockAt(new Location(world, x+1, y, z+3)).setType(Material.REDSTONE_ORE);
-      world.getBlockAt(new Location(world, x+2, y, z+3)).setType(Material.DIAMOND_ORE);
-      world.getBlockAt(new Location(world, x+3, y, z+3)).setType(Material.NETHER_QUARTZ_ORE);
+    return true;
+  }
 
-    }
+  @Override
+  public boolean onExecuteNPCCommand(CommandSender sender) {
     return false;
   }
 
