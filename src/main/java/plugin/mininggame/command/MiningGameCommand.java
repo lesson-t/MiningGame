@@ -29,12 +29,11 @@ import plugin.mininggame.data.PlayerScore;
 public class MiningGameCommand extends BaseCommand implements Listener {
 
   public static final int GAME_TIME = 20;
+
   private Main main;
   private List<PlayerScore> playerScoreList = new ArrayList<>();
 
-  public MiningGameCommand(Main main) {
-    this.main = main;
-  }
+  public MiningGameCommand(Main main) {this.main = main;}
 
   @Override
   public boolean onExecutePlayerCommand(Player player) {
@@ -42,16 +41,9 @@ public class MiningGameCommand extends BaseCommand implements Listener {
 
     initPlayerStatus(player);
     removePotionEffect(player);
+    removeEnemies(player);
 
     player.sendTitle("ゲームスタート！","", 0,40, 0);
-
-    List<Entity> nearbyEnemies = player.getNearbyEntities(100, 100, 100);
-    for(Entity enemy : nearbyEnemies) {
-      switch (enemy.getType()) {
-        case SPIDER, ZOMBIE, SKELETON, WITCH, ENDERMAN, CREEPER, PHANTOM -> enemy.remove();
-      }
-    }
-
     gamePlay(player, nowPlayer);
 
     removePotionEffect(player);
@@ -143,6 +135,20 @@ public class MiningGameCommand extends BaseCommand implements Listener {
     inventory.setLeggings(new ItemStack(Material.NETHERITE_LEGGINGS));
     inventory.setBoots(new ItemStack(Material.NETHERITE_BOOTS));
     inventory.setItemInMainHand(new ItemStack(Material.NETHERITE_PICKAXE));
+  }
+
+  /**
+   * 周辺の敵を削除する。
+   *
+   * @param player　コマンドを実行したプレイヤー
+   */
+  private void removeEnemies(Player player) {
+    List<Entity> nearbyEnemies = player.getNearbyEntities(100, 100, 100);
+    for(Entity enemy : nearbyEnemies) {
+      switch (enemy.getType()) {
+        case SPIDER, ZOMBIE, SKELETON, WITCH, ENDERMAN, CREEPER, PHANTOM -> enemy.remove();
+      }
+    }
   }
 
   /**
