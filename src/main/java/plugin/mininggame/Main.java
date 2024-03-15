@@ -1,11 +1,12 @@
 package plugin.mininggame;
 
+import java.util.Objects;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import plugin.mininggame.command.MaterialSpawnCommand;
 import plugin.mininggame.command.MiningGameCommand;
 
-public final class Main extends JavaPlugin {
+public class Main extends JavaPlugin {
 
     @Override
     public void onEnable() {
@@ -13,8 +14,8 @@ public final class Main extends JavaPlugin {
         MaterialSpawnCommand materialSpawnCommand = new MaterialSpawnCommand();
         Bukkit.getPluginManager().registerEvents(miningGameCommand, this);
         Bukkit.getPluginManager().registerEvents(materialSpawnCommand, this);
-        getCommand("mininggame").setExecutor(miningGameCommand);
-        getCommand("materialSpawn").setExecutor(materialSpawnCommand);
+        Objects.requireNonNull(getCommand("mininggame")).setExecutor(miningGameCommand);
+        Objects.requireNonNull(getCommand("materialSpawn")).setExecutor(materialSpawnCommand);
 
     }
 
