@@ -3,7 +3,9 @@ package plugin.mininggame.command;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -25,7 +27,10 @@ import plugin.mininggame.data.PlayerScore;
 public class MiningGameCommand extends BaseCommand implements Listener {
 
   public static final int GAME_TIME = 20;
-  //private Map<String, Long> limitTime = new HashMap<>();
+  public static final String EASY = "easy";
+  public static final String NORMAL = "normal";
+  public static final String HARD = "hard";
+  public static final String NONE = "none";
 
   private Main main;
   private List<PlayerScore> playerScoreList = new ArrayList<>();
@@ -33,55 +38,45 @@ public class MiningGameCommand extends BaseCommand implements Listener {
   public MiningGameCommand(Main main) {this.main = main;}
 
   @Override
-  public boolean onExecutePlayerCommand(Player player) {
-    PlayerScore nowPlayer = getPlayerScore(player);
-    //limitTime.put(player.getName(), System.currentTimeMillis() + GAME_TIME);
+  public boolean onExecutePlayerCommand(Player player, Command command, String label, String[] args) {
+    String difficulty = getDifficulty(player, args);
+    if(difficulty.equals(NONE)) {
+      return false;
+    }
 
-    initPlayerStatus(player);
+    PlayerScore nowPlayer = getPlayerScore(player);
+
+    initPlayerStatus(player, difficulty);
     removePotionEffect(player);
     removeEnemies(player);
 
     player.sendTitle("ゲームスタート！","", 0,40, 0);
-    gamePlay(player, nowPlayer);
+    gamePlay(player, nowPlayer, difficulty);
 
     removePotionEffect(player);
 
     return true;
   }
 
-  @Override
-  public boolean onExecuteNPCCommand(CommandSender sender) {
-    return false;
+  /**
+   * 難易度をコマンド引数から取得します。
+   *
+   * @param player　コマンドを実行したプイレヤー
+   * @param args　コマンド引数
+   * @return　難易度
+   */
+  private String getDifficulty(Player player, String[] args) {
+    if (args.length == 1 && (EASY.equals(args[0]) || NORMAL.equals(args[0]) || HARD.equals(args[0]))) {
+      return args[0];
+    }
+    player.sendMessage(ChatColor.RED + "実行できません。コマンド引数の1つ目に難易度指定が必要です。[easy, normal, hard]");
+    return NONE;
   }
 
-  /**
-   * プイレヤーが破壊したブロックのマテリアルタイプを判定して、特定の鉱石ブロックの場合に点数を加算します。
-   *
-   * @param e　プレイヤーが破壊したブロックのイベント
-   */
-//  @EventHandler
-//  public void onBlockBreak(BlockBreakEvent e) {
-//    Player player = e.getPlayer();
-//    Material material = e.getBlock().getType();
-//
-//    if(playerScoreList.isEmpty()) {
-//      return;
-//    }
-//
-//      playerScoreList.stream()
-//        .filter(p -> p.getPlayerName().equals(player.getName()))
-//        .findFirst()
-//        .ifPresent(p -> {
-//          int point = switch(material) {
-//            case COAL_ORE, COPPER_ORE, IRON_ORE -> 10;
-//            case GOLD_ORE, REDSTONE_ORE -> 30;
-//            case DIAMOND_ORE, NETHER_QUARTZ_ORE -> 50;
-//            default -> 0;
-//          };
-//          p.setScore(p.getScore() + point);
-//          player.sendMessage("ブロックを破壊した。Material:" + material + "合計点数：" + p.getScore());
-//        });
-//  }
+  @Override
+  public boolean onExecuteNPCCommand(CommandSender sender, Command command, String label, String[] args) {
+    return false;
+  }
 
   /**
    * 現在実行しているプレイヤーのスコア情報を取得する。
@@ -121,8 +116,9 @@ public class MiningGameCommand extends BaseCommand implements Listener {
    * プレイヤーの初期状態を設定する。
    *
    * @param player　コマンドを実行したプレイヤー
+   * @param difficulty　難易度
    */
-  private void initPlayerStatus(Player player) {
+  private void initPlayerStatus(Player player, String difficulty) {
     player.setLevel(30);
     player.setHealth(20);
     player.setFoodLevel(20);
@@ -132,7 +128,12 @@ public class MiningGameCommand extends BaseCommand implements Listener {
     inventory.setChestplate(new ItemStack(Material.NETHERITE_CHESTPLATE));
     inventory.setLeggings(new ItemStack(Material.NETHERITE_LEGGINGS));
     inventory.setBoots(new ItemStack(Material.NETHERITE_BOOTS));
-    inventory.setItemInMainHand(new ItemStack(Material.NETHERITE_PICKAXE));
+
+    switch (difficulty) {
+      case NORMAL -> inventory.setItemInMainHand(new ItemStack(Material.IRON_PICKAXE));
+      case HARD -> inventory.setItemInMainHand(new ItemStack(Material.STONE_PICKAXE));
+      default -> inventory.setItemInMainHand(new ItemStack(Material.NETHERITE_PICKAXE));
+    }
   }
 
   /**
@@ -154,8 +155,9 @@ public class MiningGameCommand extends BaseCommand implements Listener {
    *
    * @param player　コマンドを実行したプレイヤー
    * @param nowPlayer　プレイヤースコア情報
+   * @param difficulty　難易度
    */
-  private void gamePlay(Player player, PlayerScore nowPlayer) {
+  private void gamePlay(Player player, PlayerScore nowPlayer, String difficulty) {
     HandlerList.unregisterAll(main);
 
     Bukkit.getScheduler().runTaskTimer(main, Runnable -> {

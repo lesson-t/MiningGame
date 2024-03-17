@@ -4,20 +4,21 @@ import java.net.http.WebSocket.Listener;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class MaterialSpawnCommand extends BaseCommand implements Listener, org.bukkit.event.Listener {
 
   @Override
-  public boolean onExecutePlayerCommand(Player player) {
+  public boolean onExecutePlayerCommand(Player player, Command command, String label, String[] args) {
     materialSpawn(player);
 
     return true;
   }
 
   @Override
-  public boolean onExecuteNPCCommand(CommandSender sender) {
+  public boolean onExecuteNPCCommand(CommandSender sender, Command command, String label, String[] args) {
     return false;
   }
 
