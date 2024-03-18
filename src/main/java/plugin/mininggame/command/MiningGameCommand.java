@@ -169,13 +169,17 @@ public class MiningGameCommand extends BaseCommand implements Listener {
             0, 60, 0);
         nowPlayer.setScore(0);
 
+        HandlerList.unregisterAll(main);
+
         return;
       }
       player.sendMessage("残り" + nowPlayer.getGameTime() + "s");
       nowPlayer.setGameTime(nowPlayer.getGameTime() - 5);
     }, 0, 5 * 20);
 
-    registerBlockBreakListener(nowPlayer);
+    if(nowPlayer.getGameTime() > 0) {
+      registerBlockBreakListener(nowPlayer);
+    }
   }
 
   /**
