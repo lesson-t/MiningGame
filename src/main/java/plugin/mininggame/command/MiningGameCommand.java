@@ -1,5 +1,12 @@
 package plugin.mininggame.command;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.Bukkit;
@@ -31,6 +38,7 @@ public class MiningGameCommand extends BaseCommand implements Listener {
   public static final String NORMAL = "normal";
   public static final String HARD = "hard";
   public static final String NONE = "none";
+  public static final String LIST = "list";
 
   private Main main;
   private List<PlayerScore> playerScoreList = new ArrayList<>();
@@ -39,6 +47,28 @@ public class MiningGameCommand extends BaseCommand implements Listener {
 
   @Override
   public boolean onExecutePlayerCommand(Player player, Command command, String label, String[] args) {
+    if(args.length == 1 && LIST.equals(args[0])) {
+      try (Connection con = DriverManager.getConnection(
+          "jdbc:mysql://localhost/spigot_server",
+          "root",
+          "mysql");
+          Statement statement = con.createStatement();
+          ResultSet resultSet = statement.executeQuery("select * from player_score;")) {
+        while (resultSet.next()) {
+          int id = resultSet.getInt("id");
+          String name = resultSet.getString("player_name");
+          int score = resultSet.getInt("score");
+          String difficulty = resultSet.getString("difficulty");
+
+          LocalDateTime date = LocalDateTime.parse(resultSet.getString("registered_at"), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+          player.sendMessage(id + " | " + name + " | " + score +" | " + difficulty + " | " + date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        }
+      } catch (SQLException e) {
+        e.printStackTrace();
+      }
+      return false;
+    }
     String difficulty = getDifficulty(player, args);
     if(difficulty.equals(NONE)) {
       return false;
