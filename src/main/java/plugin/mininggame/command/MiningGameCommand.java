@@ -184,31 +184,45 @@ public class MiningGameCommand extends BaseCommand implements Listener {
    * ゲームを実行します。規定の時間内に特定の鉱石ブロックを壊すとスコアが加算されます。合計スコアが時間の経過後に表示します。
    *
    * @param player　コマンドを実行したプレイヤー
-   * @param nowPlayer　プレイヤースコア情報
+   * @param nowPlayerScore　プレイヤースコア情報
    * @param difficulty　難易度
    */
-  private void gamePlay(Player player, PlayerScore nowPlayer, String difficulty) {
+  private void gamePlay(Player player, PlayerScore nowPlayerScore, String difficulty) {
     HandlerList.unregisterAll(main);
 
     Bukkit.getScheduler().runTaskTimer(main, Runnable -> {
-      if(nowPlayer.getGameTime() <= 0) {
+      if(nowPlayerScore.getGameTime() <= 0) {
         Runnable.cancel();
 
         player.sendTitle("ゲームが終了しました。",
-            nowPlayer.getPlayerName() + " 合計" + nowPlayer.getScore() + "点！",
+            nowPlayerScore.getPlayerName() + " 合計" + nowPlayerScore.getScore() + "点！",
             0, 60, 0);
-        nowPlayer.setScore(0);
 
+        try (Connection con = DriverManager.getConnection(
+            "jdbc:mysql://localhost/spigot_server",
+            "root",
+            "mysql");
+            Statement statement = con.createStatement()) {
+
+          statement.executeUpdate(
+              "insert player_score(player_name, score, difficulty, registered_at) "
+              + "values('" + nowPlayerScore.getPlayerName() + "', " + nowPlayerScore.getScore() + ", '"
+              + difficulty + "', now());");
+        } catch (SQLException e) {
+          e.printStackTrace();
+        }
+
+        nowPlayerScore.setScore(0);
         HandlerList.unregisterAll(main);
 
         return;
       }
-      player.sendMessage("残り" + nowPlayer.getGameTime() + "s");
-      nowPlayer.setGameTime(nowPlayer.getGameTime() - 5);
+      player.sendMessage("残り" + nowPlayerScore.getGameTime() + "s");
+      nowPlayerScore.setGameTime(nowPlayerScore.getGameTime() - 5);
     }, 0, 5 * 20);
 
-    if(nowPlayer.getGameTime() > 0) {
-      registerBlockBreakListener(nowPlayer);
+    if(nowPlayerScore.getGameTime() > 0) {
+      registerBlockBreakListener(nowPlayerScore);
     }
   }
 
