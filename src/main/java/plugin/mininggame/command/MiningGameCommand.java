@@ -68,38 +68,14 @@ public class MiningGameCommand extends BaseCommand implements Listener {
         PlayerScoreMapper mapper = session.getMapper(PlayerScoreMapper.class);
         List<PlayerScore> playerScoreList = mapper.selectList();
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         for (PlayerScore playerScore : playerScoreList) {
-          LocalDateTime date = LocalDateTime.parse(playerScore.getRegisteredAt(), formatter);
           player.sendMessage(playerScore.getId() + " | "
               + playerScore.getPlayerName() + " | "
               + playerScore.getScore() + " | "
               + playerScore.getDifficulty() + " | "
-              + date.format(formatter));
+              + playerScore.getRegisteredAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         }
       }
-
-//      try (Connection con = DriverManager.getConnection(
-//          "jdbc:mysql://localhost/spigot_server",
-//          "root",
-//          "mysql");
-//          Statement statement = con.createStatement();
-//          ResultSet resultSet = statement.executeQuery("select * from player_score;")) {
-//        while (resultSet.next()) {
-//          int id = resultSet.getInt("id");
-//          String name = resultSet.getString("player_name");
-//          int score = resultSet.getInt("score");
-//          String difficulty = resultSet.getString("difficulty");
-//
-//          DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-//          LocalDateTime date = LocalDateTime.parse(resultSet.getString("registered_at"), formatter);
-//
-//          player.sendMessage(id + " | " + name + " | " + score +" | " + difficulty + " | " + date.format(
-//              formatter));
-//        }
-//      } catch (SQLException e) {
-//        e.printStackTrace();
-//      }
       return false;
     }
     String difficulty = getDifficulty(player, args);
@@ -231,18 +207,12 @@ public class MiningGameCommand extends BaseCommand implements Listener {
             nowExecutingPlayer.getPlayerName() + " 合計" + nowExecutingPlayer.getScore() + "点！",
             0, 60, 0);
 
-        try (Connection con = DriverManager.getConnection(
-            "jdbc:mysql://localhost/spigot_server",
-            "root",
-            "mysql");
-            Statement statement = con.createStatement()) {
-
-          statement.executeUpdate(
-              "insert player_score(player_name, score, difficulty, registered_at) "
-              + "values('" + nowExecutingPlayer.getPlayerName() + "', " + nowExecutingPlayer.getScore() + ", '"
-              + difficulty + "', now());");
-        } catch (SQLException e) {
-          e.printStackTrace();
+        try (SqlSession session = sqlSessionFactory.openSession(true)) {
+          PlayerScoreMapper mapper = session.getMapper(PlayerScoreMapper.class);
+          mapper.insert(
+              new PlayerScore(nowExecutingPlayer.getPlayerName()
+                  , nowExecutingPlayer.getScore()
+                  , difficulty));
         }
 
         nowExecutingPlayer.setScore(0);
