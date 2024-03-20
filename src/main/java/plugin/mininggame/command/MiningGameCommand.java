@@ -1,18 +1,8 @@
 package plugin.mininggame.command;
 
-import java.io.InputStream;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.ibatis.io.Resources;
-import org.apache.ibatis.session.SqlSession;
-import org.apache.ibatis.session.SqlSessionFactory;
-import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -27,9 +17,9 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
+import plugin.mininggame.PlayerScoreData;
 import plugin.mininggame.Main;
 import plugin.mininggame.data.ExecutingPlayer;
-import plugin.mininggame.mapper.PlayerScoreMapper;
 import plugin.mininggame.mapper.data.PlayerScore;
 
 /**
@@ -46,36 +36,19 @@ public class MiningGameCommand extends BaseCommand implements Listener {
   public static final String NONE = "none";
   public static final String LIST = "list";
 
-  private Main main;
-  private List<ExecutingPlayer> executingPlayerList = new ArrayList<>();
-  private SqlSessionFactory sqlSessionFactory;
+  private final Main main;
+  private final PlayerScoreData playerScoreData = new PlayerScoreData();
+  private final List<ExecutingPlayer> executingPlayerList = new ArrayList<>();
+
 
   public MiningGameCommand(Main main) {
     this.main = main;
-
-    try {
-      InputStream inputStream = Resources.getResourceAsStream("mybatis-config.xml");
-      this.sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
   }
 
   @Override
   public boolean onExecutePlayerCommand(Player player, Command command, String label, String[] args) {
     if(args.length == 1 && LIST.equals(args[0])) {
-      try (SqlSession session = sqlSessionFactory.openSession()) {
-        PlayerScoreMapper mapper = session.getMapper(PlayerScoreMapper.class);
-        List<PlayerScore> playerScoreList = mapper.selectList();
-
-        for (PlayerScore playerScore : playerScoreList) {
-          player.sendMessage(playerScore.getId() + " | "
-              + playerScore.getPlayerName() + " | "
-              + playerScore.getScore() + " | "
-              + playerScore.getDifficulty() + " | "
-              + playerScore.getRegisteredAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        }
-      }
+      sendPlayerScoreList(player);
       return false;
     }
     String difficulty = getDifficulty(player, args);
@@ -95,6 +68,22 @@ public class MiningGameCommand extends BaseCommand implements Listener {
     removePotionEffect(player);
 
     return true;
+  }
+
+  /**
+   * 現在登録されているスコアの一覧をメッセージに送る。
+   *
+   * @param player　プレイヤー
+   */
+  private void sendPlayerScoreList(Player player) {
+    List<PlayerScore> playerScoreList = playerScoreData.selectList();
+    for (PlayerScore playerScore : playerScoreList) {
+      player.sendMessage(playerScore.getId() + " | "
+          + playerScore.getPlayerName() + " | "
+          + playerScore.getScore() + " | "
+          + playerScore.getDifficulty() + " | "
+          + playerScore.getRegisteredAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+    }
   }
 
   /**
@@ -207,13 +196,10 @@ public class MiningGameCommand extends BaseCommand implements Listener {
             nowExecutingPlayer.getPlayerName() + " 合計" + nowExecutingPlayer.getScore() + "点！",
             0, 60, 0);
 
-        try (SqlSession session = sqlSessionFactory.openSession(true)) {
-          PlayerScoreMapper mapper = session.getMapper(PlayerScoreMapper.class);
-          mapper.insert(
-              new PlayerScore(nowExecutingPlayer.getPlayerName()
-                  , nowExecutingPlayer.getScore()
-                  , difficulty));
-        }
+        playerScoreData.insert(
+            new PlayerScore(nowExecutingPlayer.getPlayerName()
+            , nowExecutingPlayer.getScore()
+            , difficulty));
 
         nowExecutingPlayer.setScore(0);
         HandlerList.unregisterAll(main);
@@ -225,16 +211,15 @@ public class MiningGameCommand extends BaseCommand implements Listener {
     }, 0, 5 * 20);
 
     if(nowExecutingPlayer.getGameTime() > 0) {
-      registerBlockBreakListener(nowExecutingPlayer);
+      registerBlockBreakListener();
     }
   }
 
   /**
    * プイレヤーが破壊したブロックのマテリアルタイプを判定して、特定の鉱石ブロックの場合に点数を加算します。
    *
-   * @param nowPlayer コマンドを実行したプイレヤーのスコア情報
    */
-  private void registerBlockBreakListener(ExecutingPlayer nowPlayer) {
+  private void registerBlockBreakListener() {
     Bukkit.getPluginManager().registerEvents(new Listener() {
       @EventHandler
       public void onBlockBreak(BlockBreakEvent e) {
