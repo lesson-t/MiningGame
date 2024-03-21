@@ -70,6 +70,11 @@ public class MiningGameCommand extends BaseCommand implements Listener {
     return true;
   }
 
+  @Override
+  public boolean onExecuteNPCCommand(CommandSender sender, Command command, String label, String[] args) {
+    return false;
+  }
+
   /**
    * 現在登録されているスコアの一覧をメッセージに送る。
    *
@@ -99,11 +104,6 @@ public class MiningGameCommand extends BaseCommand implements Listener {
     }
     player.sendMessage(ChatColor.RED + "実行できません。コマンド引数の1つ目に難易度指定が必要です。[easy, normal, hard]");
     return NONE;
-  }
-
-  @Override
-  public boolean onExecuteNPCCommand(CommandSender sender, Command command, String label, String[] args) {
-    return false;
   }
 
   /**
