@@ -257,5 +257,4 @@ public class MiningGameCommand extends BaseCommand implements Listener {
         .map(PotionEffect::getType)
         .forEach(player::removePotionEffect);
   }
-
 }
