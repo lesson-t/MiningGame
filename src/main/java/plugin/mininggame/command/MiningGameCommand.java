@@ -173,7 +173,7 @@ public class MiningGameCommand extends BaseCommand implements Listener {
     List<Entity> nearbyEnemies = player.getNearbyEntities(100, 100, 100);
     for(Entity enemy : nearbyEnemies) {
       switch (enemy.getType()) {
-        case SPIDER, ZOMBIE, SKELETON, WITCH, ENDERMAN, CREEPER, PHANTOM -> enemy.remove();
+          case SPIDER, ZOMBIE, SKELETON, WITCH, ENDERMAN, CREEPER, PHANTOM -> enemy.remove();
       }
     }
   }
