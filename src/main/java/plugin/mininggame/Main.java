@@ -11,11 +11,9 @@ public class Main extends JavaPlugin {
     @Override
     public void onEnable() {
         MiningGameCommand miningGameCommand = new MiningGameCommand(this);
-        MaterialSpawnCommand materialSpawnCommand = new MaterialSpawnCommand();
         Bukkit.getPluginManager().registerEvents(miningGameCommand, this);
-        Bukkit.getPluginManager().registerEvents(materialSpawnCommand, this);
         Objects.requireNonNull(getCommand("mininggame")).setExecutor(miningGameCommand);
-        Objects.requireNonNull(getCommand("materialSpawn")).setExecutor(materialSpawnCommand);
+        Objects.requireNonNull(getCommand("materialSpawn")).setExecutor(new MaterialSpawnCommand());
 
     }
 

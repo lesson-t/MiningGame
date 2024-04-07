@@ -13,7 +13,7 @@
         <property name="driver" value="com.mysql.cj.jdbc.Driver"/>
         <property name="url" value="jdbc:mysql://localhost/spigot_server"/>
         <property name="username" value="root"/>
-        <property name="password" value="mysql"/>
+        <property name="password" value="mysql@win"/>
       </dataSource>
     </environment>
   </environments>

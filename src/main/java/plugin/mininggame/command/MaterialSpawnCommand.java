@@ -10,6 +10,15 @@ import org.bukkit.entity.Player;
 
 public class MaterialSpawnCommand extends BaseCommand implements Listener, org.bukkit.event.Listener {
 
+  /**
+   * テスト用に鉱石を出現させる。
+   *
+   * @param player　コマンドを実行したプレイヤー
+   * @param command　コマンド
+   * @param label　ラベル
+   * @param args　コマンド引数
+   * @return　処理の実行有無
+   */
   @Override
   public boolean onExecutePlayerCommand(Player player, Command command, String label, String[] args) {
     materialSpawn(player);
@@ -17,11 +26,25 @@ public class MaterialSpawnCommand extends BaseCommand implements Listener, org.b
     return true;
   }
 
+  /**
+   * コマンド実行者がプレイヤー以外だった場合に実行します。
+   *
+   * @param sender　コマンド実行者
+   * @param command　コマンド
+   * @param label　ラベル
+   * @param args　コマンド引数
+   * @return　処理の実行有無
+   */
   @Override
   public boolean onExecuteNPCCommand(CommandSender sender, Command command, String label, String[] args) {
     return false;
   }
 
+  /**
+   * テスト用の功績を出現させるためのプレイヤーからの位置情報と設置する。
+   *
+   * @param player　コマンドを実行したプレイヤー
+   */
   private void materialSpawn(Player player) {
     World world = player.getWorld();
     Location playerLocation = player.getLocation();
