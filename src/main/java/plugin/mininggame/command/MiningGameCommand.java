@@ -39,18 +39,30 @@ public class MiningGameCommand extends BaseCommand implements Listener {
   private final Main main;
   private final PlayerScoreData playerScoreData = new PlayerScoreData();
   private final List<ExecutingPlayer> executingPlayerList = new ArrayList<>();
+  private Material preMaterial;
 
 
   public MiningGameCommand(Main main) {
     this.main = main;
   }
 
+  /**
+   * ゲームを実行します。規定の時間内に採掘をして、採掘した鉱石の種類に応じてスコアに加算します。合計スコアを時間経過後に表示します。
+   *
+   * @param player　コマンドを実行したプレイヤー
+   * @param command　コマンド
+   * @param label　ラベル
+   * @param args　コマンド引数
+   * @return　処理の終了
+   */
   @Override
   public boolean onExecutePlayerCommand(Player player, Command command, String label, String[] args) {
+    // 最初の引数が「list」だったらスコアを一覧表示して処理を終了する。
     if(args.length == 1 && LIST.equals(args[0])) {
       sendPlayerScoreList(player);
       return false;
     }
+
     String difficulty = getDifficulty(player, args);
     if(difficulty.equals(NONE)) {
       return false;
@@ -62,7 +74,6 @@ public class MiningGameCommand extends BaseCommand implements Listener {
     removePotionEffect(player);
     removeEnemies(player);
 
-    player.sendTitle("ゲームスタート！","", 0,40, 0);
     gamePlay(player, nowPlayer, difficulty);
 
     removePotionEffect(player);
@@ -186,6 +197,7 @@ public class MiningGameCommand extends BaseCommand implements Listener {
    * @param difficulty　難易度
    */
   private void gamePlay(Player player, ExecutingPlayer nowExecutingPlayer, String difficulty) {
+    player.sendTitle("ゲームスタート！","", 0,40, 0);
     HandlerList.unregisterAll(main);
 
     Bukkit.getScheduler().runTaskTimer(main, Runnable -> {
