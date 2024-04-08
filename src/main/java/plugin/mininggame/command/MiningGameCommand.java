@@ -259,38 +259,6 @@ public class MiningGameCommand extends BaseCommand implements Listener {
   }
 
   /**
-   * プイレヤーが破壊したブロックのマテリアルタイプを判定して、特定の鉱石ブロックの場合に点数を加算します。
-   *
-   */
-//  private void registerBlockBreakListener() {
-//    Bukkit.getPluginManager().registerEvents(new Listener() {
-//      @EventHandler
-//      public void onBlockBreak(BlockBreakEvent e) {
-//        Player player = e.getPlayer();
-//        Material material = e.getBlock().getType();
-//
-//        if(executingPlayerList.isEmpty()) {
-//          return;
-//        }
-//
-//        executingPlayerList.stream()
-//            .filter(p -> p.getPlayerName().equals(player.getName()))
-//            .findFirst()
-//            .ifPresent(p -> {
-//              int point = switch(material) {
-//                case COAL_ORE, COPPER_ORE, IRON_ORE -> 10;
-//                case GOLD_ORE, REDSTONE_ORE -> 30;
-//                case DIAMOND_ORE, NETHER_QUARTZ_ORE -> 50;
-//                default -> 0;
-//              };
-//              p.setScore(p.getScore() + point);
-//              player.sendMessage("ブロックを破壊した。Material:" + material + "合計点数：" + p.getScore());
-//            });
-//      }
-//    } , main);
-//  }
-
-  /**
    * プレイヤーのポーション効果を除去します。
    *
    * @param player　コマンドを実行したプイレヤー
