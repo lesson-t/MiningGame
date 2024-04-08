@@ -52,20 +52,22 @@ public class MaterialSpawnCommand extends BaseCommand implements Listener, org.b
     double y = playerLocation.getY();
     double z = playerLocation.getZ() +6;
 
-    world.getBlockAt(new Location(world, x-3, y+1, z)).setType(Material.COAL_ORE);
-    world.getBlockAt(new Location(world, x-3,    y,   z)).setType(Material.COAL_ORE);
-    world.getBlockAt(new Location(world, x-2, y+1, z)).setType(Material.COPPER_ORE);
-    world.getBlockAt(new Location(world, x-2,    y,   z)).setType(Material.COPPER_ORE);
-    world.getBlockAt(new Location(world, x-1, y+1, z)).setType(Material.IRON_ORE);
-    world.getBlockAt(new Location(world, x-1,    y,   z)).setType(Material.IRON_ORE);
-    world.getBlockAt(new Location(world,    x,   y+1, z)).setType(Material.GOLD_ORE);
-    world.getBlockAt(new Location(world,    x,      y,   z)).setType(Material.GOLD_ORE);
-    world.getBlockAt(new Location(world, x+1, y+1, z)).setType(Material.REDSTONE_ORE);
-    world.getBlockAt(new Location(world, x+1,    y,   z)).setType(Material.REDSTONE_ORE);
-    world.getBlockAt(new Location(world, x+2, y+1, z)).setType(Material.DIAMOND_ORE);
-    world.getBlockAt(new Location(world, x+2,    y,   z)).setType(Material.DIAMOND_ORE);
-    world.getBlockAt(new Location(world, x+3, y+1, z)).setType(Material.NETHER_QUARTZ_ORE);
-    world.getBlockAt(new Location(world, x+3,    y,   z)).setType(Material.NETHER_QUARTZ_ORE);
+    world.getBlockAt(new Location(world, x - 3,    y,     z)).setType(Material.COAL_ORE);
+    world.getBlockAt(new Location(world, x - 3, y + 1, z)).setType(Material.COAL_ORE);
+    world.getBlockAt(new Location(world, x - 2,    y,     z)).setType(Material.IRON_ORE);
+    world.getBlockAt(new Location(world, x - 2, y + 1, z)).setType(Material.IRON_ORE);
+    world.getBlockAt(new Location(world, x - 1,    y,     z)).setType(Material.COPPER_ORE);
+    world.getBlockAt(new Location(world, x - 1, y + 1, z)).setType(Material.COPPER_ORE);
+    world.getBlockAt(new Location(world, x + 0,    y,     z)).setType(Material.GOLD_ORE);
+    world.getBlockAt(new Location(world, x + 0, y + 1, z)).setType(Material.GOLD_ORE);
+    world.getBlockAt(new Location(world, x + 1,    y,     z)).setType(Material.REDSTONE_ORE);
+    world.getBlockAt(new Location(world, x + 1, y + 1, z)).setType(Material.REDSTONE_ORE);
+    world.getBlockAt(new Location(world, x + 2,    y,     z)).setType(Material.DIAMOND_ORE);
+    world.getBlockAt(new Location(world, x + 2, y + 1, z)).setType(Material.DIAMOND_ORE);
+    world.getBlockAt(new Location(world, x + 3,    y,     z)).setType(Material.LAPIS_ORE);
+    world.getBlockAt(new Location(world, x + 3, y + 1, z)).setType(Material.LAPIS_ORE);
+    world.getBlockAt(new Location(world, x + 4,    y,     z)).setType(Material.EMERALD_ORE);
+    world.getBlockAt(new Location(world, x + 4, y + 1, z)).setType(Material.EMERALD_ORE);
   }
 
 }

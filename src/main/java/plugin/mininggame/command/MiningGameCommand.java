@@ -11,7 +11,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
@@ -198,8 +197,6 @@ public class MiningGameCommand extends BaseCommand implements Listener {
    */
   private void gamePlay(Player player, ExecutingPlayer nowExecutingPlayer, String difficulty) {
     player.sendTitle("ゲームスタート！","", 0,40, 0);
-    HandlerList.unregisterAll(main);
-
     Bukkit.getScheduler().runTaskTimer(main, Runnable -> {
       if(nowExecutingPlayer.getGameTime() <= 0) {
         Runnable.cancel();
@@ -208,56 +205,90 @@ public class MiningGameCommand extends BaseCommand implements Listener {
             nowExecutingPlayer.getPlayerName() + " 合計" + nowExecutingPlayer.getScore() + "点！",
             0, 60, 0);
 
+        removePotionEffect(player);
+
         playerScoreData.insert(
             new PlayerScore(nowExecutingPlayer.getPlayerName()
             , nowExecutingPlayer.getScore()
             , difficulty));
 
         nowExecutingPlayer.setScore(0);
-        HandlerList.unregisterAll(main);
-
         return;
       }
       player.sendMessage("残り" + nowExecutingPlayer.getGameTime() + "s");
       nowExecutingPlayer.setGameTime(nowExecutingPlayer.getGameTime() - 5);
     }, 0, 5 * 20);
 
-    if(nowExecutingPlayer.getGameTime() > 0) {
-      registerBlockBreakListener();
+  }
+
+  /**
+   * ゲーム時間内に鉱石を採掘したときに、特定の鉱石だった場合加点する。
+   *
+   * @param e　破壊したブロックイベント
+   */
+  @EventHandler
+  public void onBlockBreak(BlockBreakEvent e) {
+    Player player = e.getPlayer();
+    Material material = e.getBlock().getType();
+
+    if(executingPlayerList.isEmpty()) {
+      return;
     }
+
+    executingPlayerList.stream()
+        .filter(p -> p.getPlayerName().equals(player.getName()))
+        .findFirst()
+        .ifPresent(p -> {
+          if (p.getGameTime() > 0) {
+            int point = switch (material) {
+              case COAL_ORE, IRON_ORE, COPPER_ORE -> 10;
+              case GOLD_ORE, REDSTONE_ORE -> 30;
+              case DIAMOND_ORE, LAPIS_ORE, EMERALD_ORE -> 50;
+              default -> 0;
+            };
+            if(material.equals(preMaterial)) {
+              point *=2;
+              player.sendMessage("同種の鉱石を採掘！獲得点数２倍");
+            }
+
+            p.setScore(p.getScore() + point);
+            player.sendMessage(material + "を採掘しました。" + point + "点を獲得！ 合計" + p.getScore() + "点");
+            preMaterial = material;
+          }
+        });
   }
 
   /**
    * プイレヤーが破壊したブロックのマテリアルタイプを判定して、特定の鉱石ブロックの場合に点数を加算します。
    *
    */
-  private void registerBlockBreakListener() {
-    Bukkit.getPluginManager().registerEvents(new Listener() {
-      @EventHandler
-      public void onBlockBreak(BlockBreakEvent e) {
-        Player player = e.getPlayer();
-        Material material = e.getBlock().getType();
-
-        if(executingPlayerList.isEmpty()) {
-          return;
-        }
-
-        executingPlayerList.stream()
-            .filter(p -> p.getPlayerName().equals(player.getName()))
-            .findFirst()
-            .ifPresent(p -> {
-              int point = switch(material) {
-                case COAL_ORE, COPPER_ORE, IRON_ORE -> 10;
-                case GOLD_ORE, REDSTONE_ORE -> 30;
-                case DIAMOND_ORE, NETHER_QUARTZ_ORE -> 50;
-                default -> 0;
-              };
-              p.setScore(p.getScore() + point);
-              player.sendMessage("ブロックを破壊した。Material:" + material + "合計点数：" + p.getScore());
-            });
-      }
-    } , main);
-  }
+//  private void registerBlockBreakListener() {
+//    Bukkit.getPluginManager().registerEvents(new Listener() {
+//      @EventHandler
+//      public void onBlockBreak(BlockBreakEvent e) {
+//        Player player = e.getPlayer();
+//        Material material = e.getBlock().getType();
+//
+//        if(executingPlayerList.isEmpty()) {
+//          return;
+//        }
+//
+//        executingPlayerList.stream()
+//            .filter(p -> p.getPlayerName().equals(player.getName()))
+//            .findFirst()
+//            .ifPresent(p -> {
+//              int point = switch(material) {
+//                case COAL_ORE, COPPER_ORE, IRON_ORE -> 10;
+//                case GOLD_ORE, REDSTONE_ORE -> 30;
+//                case DIAMOND_ORE, NETHER_QUARTZ_ORE -> 50;
+//                default -> 0;
+//              };
+//              p.setScore(p.getScore() + point);
+//              player.sendMessage("ブロックを破壊した。Material:" + material + "合計点数：" + p.getScore());
+//            });
+//      }
+//    } , main);
+//  }
 
   /**
    * プレイヤーのポーション効果を除去します。
